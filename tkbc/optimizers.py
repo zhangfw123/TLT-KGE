@@ -35,7 +35,7 @@ class TKBCOptimizer(object):
             while b_begin < examples.shape[0]:
                 input_batch = actual_examples[
                     b_begin:b_begin + self.batch_size
-                ].to('cpu')
+            ].to('cuda' if self.is_cuda else 'cpu')
                 predictions, factors, time = self.model.forward(input_batch)
                 truth = input_batch[:, 2]
 
@@ -88,11 +88,11 @@ class IKBCOptimizer(object):
             bar.set_description(f'train loss')
             b_begin = 0
             while b_begin < examples.shape[0]:
-                time_range = actual_examples[b_begin:b_begin + self.batch_size].to('cpu')
+                time_range = actual_examples[b_begin:b_begin + self.batch_size].to('cuda' if self.is_cuda else 'cpu')
 
                 ## RHS Prediction loss
                 sampled_time = (
-                        torch.rand(time_range.shape[0]).to('cpu') * (time_range[:, 4] - time_range[:, 3]).float() +
+                        torch.rand(time_range.shape[0]).to('cuda' if self.is_cuda else 'cpu') * (time_range[:, 4] - time_range[:, 3]).float() +
                         time_range[:, 3].float()
                 ).round().long()
                 with_time = torch.cat((time_range[:, 0:3], sampled_time.unsqueeze(1)), 1)
@@ -111,11 +111,11 @@ class IKBCOptimizer(object):
                     ) # NOT no begin and no end
                     these_examples = time_range[filtering, :]
                     truth = (
-                            torch.rand(these_examples.shape[0]).to('cpu') * (these_examples[:, 4] - these_examples[:, 3]).float() +
+                            torch.rand(these_examples.shape[0]).to('cuda' if self.is_cuda else 'cpu') * (these_examples[:, 4] - these_examples[:, 3]).float() +
                             these_examples[:, 3].float()
                     ).round().long()
-                    time_predictions = self.model.forward_over_time(these_examples[:, :3].to('cpu').long())
-                    time_loss = loss(time_predictions, truth.to('cpu'))
+                    time_predictions = self.model.forward_over_time(these_examples[:, :3].to('cuda' if self.is_cuda else 'cpu').long())
+                    time_loss = loss(time_predictions, truth.to('cuda' if self.is_cuda else 'cpu'))
 
                 l_reg = self.emb_regularizer.forward(factors)
                 l_time = torch.zeros_like(l_reg)

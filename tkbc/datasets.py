@@ -16,9 +16,9 @@ from models import TKBCModel
 DATA_PATH = pkg_resources.resource_filename('tkbc', 'data/')
 
 class TemporalDataset(object):
-    def __init__(self, name: str):
+    def __init__(self, name: str, is_cuda: bool = False):
         self.root = Path(DATA_PATH) / name
-        
+        self.is_cuda = is_cuda
         self.data = {}
         for f in ['train', 'test', 'valid']:
             in_file = open(str(self.root / (f + '.pickle')), 'rb')
@@ -39,7 +39,7 @@ class TemporalDataset(object):
         self.n_timestamps += self.move
         try:
             inp_f = open(str(self.root / f'ts_diffs.pickle'), 'rb')
-            self.time_diffs = torch.from_numpy(pickle.load(inp_f)).cuda().float()
+            self.time_diffs = torch.from_numpy(pickle.load(inp_f)).to('cuda' if self.is_cuda else 'cpu').float()
             inp_f.close()
         except OSError:
             print("Assume all timestamps are regularly spaced")
@@ -98,7 +98,7 @@ class TemporalDataset(object):
         if self.events is not None:
             return self.time_eval(model, split, n_queries, 'rhs', at)
         test = self.get_examples(split)
-        examples = torch.from_numpy(test.astype('int64')).cuda()
+        examples = torch.from_numpy(test.astype('int64')).to('cuda' if self.is_cuda else 'cpu')
         missing = [missing_eval]
         if missing_eval == 'both':
             missing = ['rhs', 'lhs']
@@ -305,7 +305,7 @@ class TemporalDataset(object):
             permutation = torch.randperm(len(test))[:n_queries]
             test = test[permutation]
 
-        truth, scores = model.get_auc(test.cuda())
+        truth, scores = model.get_auc(test.to('cuda' if self.is_cuda else 'cpu'))
 
         return {
             'micro': average_precision_score(truth, scores, average='micro'),

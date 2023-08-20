@@ -79,7 +79,7 @@ args = parser.parse_args()
 save_path = "expe_log/{}_{}_{}_{}_{}_{}_{}_{}".format(args.dataset, args.model, args.rank, args.learning_rate, args.emb_reg, args.time_reg, args.cycle, int(time.time()))
 if not os.path.exists(save_path):
     os.makedirs(save_path) 
-dataset = TemporalDataset(args.dataset)
+dataset = TemporalDataset(args.dataset, is_cuda=True if args.gpu == 1 else False)
 fw = codecs.open("{}/log.txt".format(save_path), 'w')
 sizes = dataset.get_shape()
 model = {

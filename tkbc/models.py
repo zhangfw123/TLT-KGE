@@ -106,7 +106,7 @@ class TKBCModel(nn.Module, ABC):
                 scores = self.forward_over_time(these_queries)
                 all_scores.append(scores.cpu().numpy())
                 if all_ts_ids is None:
-                    all_ts_ids = torch.arange(0, scores.shape[1]).to('cpu')[None, :]
+                    all_ts_ids = torch.arange(0, scores.shape[1]).to('cuda' if self.is_cuda else 'cpu')[None, :]
                 assert not torch.any(torch.isinf(scores) + torch.isnan(scores)), "inf or nan scores"
                 truth = (all_ts_ids <= these_queries[:, 4][:, None]) * (all_ts_ids >= these_queries[:, 3][:, None])
                 all_truth.append(truth.cpu().numpy())
