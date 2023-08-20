@@ -106,7 +106,7 @@ class TKBCModel(nn.Module, ABC):
                 scores = self.forward_over_time(these_queries)
                 all_scores.append(scores.cpu().numpy())
                 if all_ts_ids is None:
-                    all_ts_ids = torch.arange(0, scores.shape[1]).cuda()[None, :]
+                    all_ts_ids = torch.arange(0, scores.shape[1]).to('cpu')[None, :]
                 assert not torch.any(torch.isinf(scores) + torch.isnan(scores)), "inf or nan scores"
                 truth = (all_ts_ids <= these_queries[:, 4][:, None]) * (all_ts_ids >= these_queries[:, 3][:, None])
                 all_truth.append(truth.cpu().numpy())
@@ -161,7 +161,7 @@ class TKBCModel(nn.Module, ABC):
 class TLT_KGE_Quaternion(TKBCModel):
     def __init__(
             self, sizes: Tuple[int, int, int, int], rank: int,
-            init_size: float = 1e-3, cycle=365
+            init_size: float = 1e-3, cycle=365, is_cuda:bool=False
     ):
         super(TLT_KGE_Quaternion, self).__init__()
         self.model_name = "TLT_KGE_Quaternion"
@@ -179,6 +179,7 @@ class TLT_KGE_Quaternion(TKBCModel):
             nn.Embedding(sizes[3]//self.cycle + 1, 2*rank, sparse=True),
             nn.Embedding(sizes[3]//self.cycle + 1, 2*rank, sparse=True),
         ])
+        self.is_cuda = is_cuda
         
         if rank % 2 != 0:
             raise "rank need to be devided by 2.."
@@ -276,7 +277,7 @@ class TLT_KGE_Quaternion(TKBCModel):
 class TLT_KGE_Complex(TKBCModel):
     def __init__(
             self, sizes: Tuple[int, int, int, int], rank: int,
-            init_size: float = 1e-3, cycle=365
+            init_size: float = 1e-3, cycle=365, is_cuda = False
     ):
         super(TLT_KGE_Complex, self).__init__()
         self.cycle = cycle
@@ -296,6 +297,7 @@ class TLT_KGE_Complex(TKBCModel):
             nn.Embedding(sizes[3]//self.cycle + 1, 2*rank, sparse=True),
             nn.Embedding(sizes[3]//self.cycle + 1, 2*rank, sparse=True),
         ])
+        self.is_cuda = is_cuda
         if rank % 2 != 0:
             raise "rank need to be devided by 2.."
         for i in range(len(self.embeddings)):
@@ -393,7 +395,7 @@ class TLT_KGE_Complex(TKBCModel):
 class TComplEx(TKBCModel):
     def __init__(
             self, sizes: Tuple[int, int, int, int], rank: int,
-            no_time_emb=False, init_size: float = 1e-2
+            no_time_emb=False, init_size: float = 1e-2, is_cuda:bool=False
     ):
         super(TComplEx, self).__init__()
         self.sizes = sizes
@@ -409,6 +411,7 @@ class TComplEx(TKBCModel):
         self.embeddings[2].weight.data *= init_size
 
         self.no_time_emb = no_time_emb
+        self.is_cuda=is_cuda
 
     @staticmethod
     def has_time():
@@ -500,7 +503,7 @@ class TComplEx(TKBCModel):
 class TNTComplEx(TKBCModel):
     def __init__(
             self, sizes: Tuple[int, int, int, int], rank: int,
-            no_time_emb=False, init_size: float = 1e-2
+            no_time_emb=False, init_size: float = 1e-2, is_cuda:bool=False
     ):
         super(TNTComplEx, self).__init__()
         self.model_name = "TNTComplEx"
@@ -517,6 +520,7 @@ class TNTComplEx(TKBCModel):
         self.embeddings[3].weight.data *= init_size
 
         self.no_time_emb = no_time_emb
+        self.is_cuda=is_cuda
 
     @staticmethod
     def has_time():
