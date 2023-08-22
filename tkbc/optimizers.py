@@ -15,7 +15,7 @@ class TKBCOptimizer(object):
             self, model: TKBCModel,
             emb_regularizer: Regularizer, temporal_regularizer: Regularizer,
             optimizer: optim.Optimizer, batch_size: int = 256,
-            verbose: bool = True, add_reg=None
+            verbose: bool = True, add_reg=None, is_cuda:bool = False
     ):
         self.model = model
         self.emb_regularizer = emb_regularizer
@@ -24,6 +24,7 @@ class TKBCOptimizer(object):
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.verbose = verbose
+        self.is_cuda = is_cuda
 
     def epoch(self, examples: torch.LongTensor):
         actual_examples = examples[torch.randperm(examples.shape[0]), :]
@@ -34,7 +35,7 @@ class TKBCOptimizer(object):
             while b_begin < examples.shape[0]:
                 input_batch = actual_examples[
                     b_begin:b_begin + self.batch_size
-                ].cuda()
+            ].to('cuda' if self.is_cuda else 'cpu')
                 predictions, factors, time = self.model.forward(input_batch)
                 truth = input_batch[:, 2]
 
@@ -68,7 +69,7 @@ class IKBCOptimizer(object):
             self, model: TKBCModel,
             emb_regularizer: Regularizer, temporal_regularizer: Regularizer,
             optimizer: optim.Optimizer, dataset: TemporalDataset, batch_size: int = 256,
-            verbose: bool = True, add_reg=None
+            verbose: bool = True, add_reg=None, is_cuda: bool=False
     ):
         self.model = model
         self.dataset = dataset
@@ -78,6 +79,7 @@ class IKBCOptimizer(object):
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.verbose = verbose
+        self.is_cuda = is_cuda
 
     def epoch(self, examples: torch.LongTensor):
         actual_examples = examples[torch.randperm(examples.shape[0]), :]
@@ -86,11 +88,11 @@ class IKBCOptimizer(object):
             bar.set_description(f'train loss')
             b_begin = 0
             while b_begin < examples.shape[0]:
-                time_range = actual_examples[b_begin:b_begin + self.batch_size].cuda()
+                time_range = actual_examples[b_begin:b_begin + self.batch_size].to('cuda' if self.is_cuda else 'cpu')
 
                 ## RHS Prediction loss
                 sampled_time = (
-                        torch.rand(time_range.shape[0]).cuda() * (time_range[:, 4] - time_range[:, 3]).float() +
+                        torch.rand(time_range.shape[0]).to('cuda' if self.is_cuda else 'cpu') * (time_range[:, 4] - time_range[:, 3]).float() +
                         time_range[:, 3].float()
                 ).round().long()
                 with_time = torch.cat((time_range[:, 0:3], sampled_time.unsqueeze(1)), 1)
@@ -109,11 +111,11 @@ class IKBCOptimizer(object):
                     ) # NOT no begin and no end
                     these_examples = time_range[filtering, :]
                     truth = (
-                            torch.rand(these_examples.shape[0]).cuda() * (these_examples[:, 4] - these_examples[:, 3]).float() +
+                            torch.rand(these_examples.shape[0]).to('cuda' if self.is_cuda else 'cpu') * (these_examples[:, 4] - these_examples[:, 3]).float() +
                             these_examples[:, 3].float()
                     ).round().long()
-                    time_predictions = self.model.forward_over_time(these_examples[:, :3].cuda().long())
-                    time_loss = loss(time_predictions, truth.cuda())
+                    time_predictions = self.model.forward_over_time(these_examples[:, :3].to('cuda' if self.is_cuda else 'cpu').long())
+                    time_loss = loss(time_predictions, truth.to('cuda' if self.is_cuda else 'cpu'))
 
                 l_reg = self.emb_regularizer.forward(factors)
                 l_time = torch.zeros_like(l_reg)

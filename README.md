@@ -31,12 +31,12 @@ python tkbc/process_gdelt.py
 ## Run the Experiments
 
 ```
-python tkbc/learner.py --dataset ICEWS14 --model TLT_KGE_Quaternion --rank 1200 --emb_reg 3e-3 --time_reg 3e-2 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120
-python tkbc/learner.py --dataset ICEWS14 --model TLT_KGE_Complex --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120
-python tkbc/learner.py --dataset ICEWS05-15 --model TLT_KGE_Quaternion --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 1440
-python tkbc/learner.py --dataset ICEWS05-15 --model TLT_KGE_Complex --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 1440
-python tkbc/learner.py --dataset gdelt --model TLT_KGE_Quaternion --rank 1500 --emb_reg 5e-4 --time_reg 3e-2 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120
-python tkbc/learner.py --dataset gdelt --model TLT_KGE_Complex --rank 1500 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120
+python tkbc/learner.py --dataset ICEWS14 --model TLT_KGE_Quaternion --rank 1200 --emb_reg 3e-3 --time_reg 3e-2 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120 --gpu 1
+python tkbc/learner.py --dataset ICEWS14 --model TLT_KGE_Complex --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120 --gpu 1
+python tkbc/learner.py --dataset ICEWS05-15 --model TLT_KGE_Quaternion --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 1440 --gpu 1
+python tkbc/learner.py --dataset ICEWS05-15 --model TLT_KGE_Complex --rank 1200 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 1440 --gpu 1
+python tkbc/learner.py --dataset gdelt --model TLT_KGE_Quaternion --rank 1500 --emb_reg 5e-4 --time_reg 3e-2 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120 --gpu 1
+python tkbc/learner.py --dataset gdelt --model TLT_KGE_Complex --rank 1500 --emb_reg 1e-3 --time_reg 1e-1 --valid_freq 5 --max_epoch 200 --learning_rate 0.1 --batch_size 1000  --cycle 120 --gpu 1
 ```
 
 ## Citation

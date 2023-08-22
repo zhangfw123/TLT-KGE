@@ -69,22 +69,31 @@ parser.add_argument(
     help="time range for sharing"
 )
 
+parser.add_argument(
+    '--gpu', default=0, type=int,
+    help="Use CUDA for training"
+)
 
 args = parser.parse_args()
 
 save_path = "expe_log/{}_{}_{}_{}_{}_{}_{}_{}".format(args.dataset, args.model, args.rank, args.learning_rate, args.emb_reg, args.time_reg, args.cycle, int(time.time()))
 if not os.path.exists(save_path):
     os.makedirs(save_path) 
-dataset = TemporalDataset(args.dataset)
+dataset = TemporalDataset(args.dataset, is_cuda=True if args.gpu == 1 else False)
 fw = codecs.open("{}/log.txt".format(save_path), 'w')
 sizes = dataset.get_shape()
 model = {
-    'TComplEx': TComplEx(sizes, args.rank, no_time_emb=args.no_time_emb),
-    'TNTComplEx': TNTComplEx(sizes, args.rank, no_time_emb=args.no_time_emb),
-    'TLT_KGE_Complex':TLT_KGE_Complex(sizes, args.rank, cycle=args.cycle),
-    'TLT_KGE_Quaternion':TLT_KGE_Quaternion(sizes, args.rank, cycle=args.cycle),
+    'TComplEx': TComplEx(sizes, args.rank, no_time_emb=args.no_time_emb, is_cuda=True if args.gpu == 1 else False),
+    'TNTComplEx': TNTComplEx(sizes, args.rank, no_time_emb=args.no_time_emb, is_cuda=True if args.gpu == 1 else False),
+    'TLT_KGE_Complex':TLT_KGE_Complex(sizes, args.rank, cycle=args.cycle, is_cuda=True if args.gpu == 1 else False),
+    'TLT_KGE_Quaternion':TLT_KGE_Quaternion(sizes, args.rank, cycle=args.cycle, is_cuda=True if args.gpu == 1 else False),
 }[args.model]
-model = model.cuda()
+# in case a user want to train on a non-cuda machine
+if args.gpu == 0:
+    model = model.to('cpu')
+else:
+    model = model.cuda()
+
 best_hits1 = 0
 best_res_test = {}
 
@@ -105,14 +114,14 @@ for epoch in range(args.max_epochs):
     if dataset.has_intervals():
         optimizer = IKBCOptimizer(
             model, emb_reg, time_reg, opt, dataset,
-            batch_size=args.batch_size, add_reg = add_reg
+            batch_size=args.batch_size, add_reg = add_reg, is_cuda = True if args.gpu == 1 else False
         )
         optimizer.epoch(examples)
 
     else:
         optimizer = TKBCOptimizer(
             model, emb_reg, time_reg, opt,
-            batch_size=args.batch_size, add_reg = add_reg
+            batch_size=args.batch_size, add_reg = add_reg, is_cuda=True if args.gpu == 1 else False
         )
         optimizer.epoch(examples)
 
